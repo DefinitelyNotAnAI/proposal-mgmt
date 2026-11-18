@@ -1,0 +1,38 @@
+[
+  {
+    "id": "OPP-2026-001",
+    "name": "Enterprise Cloud Modernization",
+    "customer": "Federal Digital Services Agency",
+    "estimatedValue": 48500000,
+    "salesStage": "Proposal development",
+    "owner": "Alex Morgan",
+    "proposalDueDate": "2027-02-19"
+  },
+  {
+    "id": "OPP-2026-002",
+    "name": "Mission Analytics Platform",
+    "customer": "National Research Operations Bureau",
+    "estimatedValue": 24750000,
+    "salesStage": "Capture planning",
+    "owner": "Jordan Lee",
+    "proposalDueDate": "2027-03-12"
+  },
+  {
+    "id": "OPP-2026-003",
+    "name": "Secure Infrastructure Operations",
+    "customer": "Office of Public Infrastructure",
+    "estimatedValue": 72000000,
+    "salesStage": "Qualification",
+    "owner": "Taylor Brooks",
+    "proposalDueDate": "2027-04-30"
+  },
+  {
+    "id": "OPP-2026-004",
+    "name": "Digital Workforce Enablement",
+    "customer": "Civilian Services Directorate",
+    "estimatedValue": 12800000,
+    "salesStage": "Proposal development",
+    "owner": "Casey Rivera",
+    "proposalDueDate": "2027-01-29"
+  }
+]
