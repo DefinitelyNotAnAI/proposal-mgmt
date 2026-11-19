@@ -1,0 +1,13 @@
+{
+  "environmentId": "0a3479a3-3c89-e34e-add2-158e81282809",
+  "organizationUrl": "https://org19eb8ebf.crm.dynamics.com",
+  "solutionUniqueName": "ProposalManagementDemo",
+  "solutionId": "3aff7e97-4ae3-f111-84e8-70a8a5af8fa3",
+  "siteUrl": "https://0pnq2.sharepoint.com/sites/ProposalManagementDemo",
+  "libraryId": "c597ef7f-3551-4541-85e6-5971185240d5",
+  "parentFolder": "Proposals",
+  "sharePointConnectionId": "4351a06b-6cc3-4cbf-b5bd-ed7c49ada975",
+  "dataverseConnectionId": "edca6487-7455-42da-aad3-076c62f37b7e",
+  "provisioningFlowId": "b9e53cc5-62c2-48f5-93bc-c9bb3497f6e2",
+  "workerFlowId": "f70e7c55-3ebd-4ed8-b6be-c79cd49a0e77"
+}

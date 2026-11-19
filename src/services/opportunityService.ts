@@ -1,4 +1,5 @@
 import type { Opportunity, OpportunityProvider } from '../types/opportunity'
+import opportunities from '../data/opportunities.json' with { type: 'json' }
 
 function isOpportunity(value: unknown): value is Opportunity {
   if (typeof value !== 'object' || value === null) return false
@@ -21,15 +22,14 @@ function isOpportunity(value: unknown): value is Opportunity {
 
 export const opportunityProvider: OpportunityProvider = {
   async list(signal) {
-    const response = await fetch(new URL('../data/opportunities.json', import.meta.url), { signal })
-    if (!response.ok) throw new Error(`Opportunity data could not be loaded (HTTP ${response.status}).`)
-    const data: unknown = await response.json()
+    signal?.throwIfAborted()
+    const data: unknown = opportunities
     if (!Array.isArray(data) || !data.every(isOpportunity)) {
       throw new Error('The local opportunity data is invalid. Check the demo data and try again.')
     }
     if (new Set(data.map((opportunity) => opportunity.id)).size !== data.length) {
       throw new Error('The local opportunity data contains duplicate opportunity IDs.')
     }
-    return data
+    return data.map((opportunity) => ({ ...opportunity }))
   },
 }

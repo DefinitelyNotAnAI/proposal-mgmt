@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "appId": null,
+  "appId": "1080508d-81a7-4f3f-9b19-0e43edd30400",
   "appDisplayName": "Proposal Management Demo",
   "region": "prod",
   "appType": "CodeApp",
@@ -10,6 +10,38 @@
   "buildEntryPoint": "index.html",
   "localAppUrl": "http://localhost:3000",
   "logoPath": "Default",
-  "connectionReferences": {},
-  "databaseReferences": {}
+  "connectionReferences": {
+    "106ed32b-b4b6-4235-8233-ac7ffc572a01": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+      "displayName": "SharePoint",
+      "dataSources": [
+        "sharepointonline"
+      ],
+      "dataSets": {}
+    },
+    "a68fa279-8e49-4ce3-87d6-e3fae9b59a30": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_logicflows",
+      "displayName": "Logic flows",
+      "dataSources": [
+        "provisionproposalworkspace"
+      ],
+      "workflowDetails": {
+        "workflowEntityId": "b9e53cc5-62c2-48f5-93bc-c9bb3497f6e2",
+        "workflowDisplayName": "Provision Proposal Workspace",
+        "workflowName": "b9e53cc5-62c2-48f5-93bc-c9bb3497f6e2"
+      }
+    }
+  },
+  "databaseReferences": {
+    "default.cds": {
+      "dataSources": {
+        "proposals": {
+          "entitySetName": "new_proposals",
+          "logicalName": "new_proposal",
+          "isHidden": false
+        }
+      },
+      "environmentVariableName": ""
+    }
+  }
 }
