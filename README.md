@@ -1,6 +1,6 @@
 # Proposal Management Center
 
-Phase 1 foundation for the [project specification](docs/spec.md), built with React, TypeScript, Fluent UI React v9, Vite, and Power Apps Code Apps.
+Phase 2 workspace provisioning for the [project specification](docs/spec.md), built with React, TypeScript, Fluent UI React v9, Vite, and Power Apps Code Apps.
 
 ## Running and validating
 
@@ -15,36 +15,72 @@ npm run lint
 
 Port 3000 matches the existing Power Apps local app URL. Open the URL printed by Vite. Add `--strictPort` to fail rather than use another port if it is occupied.
 
-The existing Power Apps SDK, Vite plugin, and `power.config.json` remain unchanged. No connection or database references have been added.
+The existing Power Apps SDK, Vite plugin, target environment, and hosting settings are retained. The Power Apps CLI adds generated Dataverse, SharePoint, and flow bindings to `power.config.json`, `.power`, and `src/generated`. Do not hand-edit generated files.
+
+Use the **Local Play** URL printed by the Power Apps Vite plugin for authenticated service access. A standalone localhost page can display the shell and mock opportunities, but it does not supply the Power Apps connection runtime; connection errors are shown rather than simulated success.
+
+Published Code Apps require a qualifying Power Apps Premium entitlement or supported capacity-based licensing; Power Apps for Microsoft 365 alone is not sufficient. Users must also consent to the app's connector connections when Power Apps prompts. Licensing and connection consent are separate from SharePoint site membership and Dataverse permissions.
+
+## Phase 2 architecture and deployment
+
+- `power-platform/config.json` contains the confirmed development environment, existing solution, SharePoint library, connection IDs, and stable flow IDs. These are resource identifiers, not credentials.
+- `power-platform/deploy.ps1` creates the user-owned `new_proposal` table, snapshot/status/reference columns, unique opportunity key, connection references, and two solution-aware flows in **Proposal Management Demo**. It is additive and can resume after the asynchronous unique-key index becomes active.
+- **Provision Proposal Workspace** uses the supported Power Apps V2 trigger. It resolves the authenticated requester's Dataverse identity, creates or locates a proposal, queues failed proposals for retry, and returns the proposal ID. Opportunity details come from the configured fictional catalog, not user-supplied path strings.
+- **Provision Proposal Workspace Worker** reacts to newly added or modified Requested proposals. Global trigger concurrency is one; it rereads current status, creates only missing folders, verifies each folder, saves real SharePoint URLs, and marks Ready only after successful verification. Partial failures retain the record/folders and persist a flow-run reference for diagnosis.
+- Folder names are frozen in Dataverse. Repeated requests and renamed opportunities reuse the same workspace. No folder, proposal, or template is deleted by provisioning.
+- Workspaces live under **Documents > Proposals** in the configured private Team site and inherit permissions. No templates are configured.
+- The client polls status every five seconds while provisioning, stops polling on errors, and exposes Refresh Status to recover. Requests with uncertain outcomes require a status refresh before another attempt.
+- Inventory is loaded through the SharePoint connector, filtered to direct files in the exact solicitation folder. Unsupported types remain visible; uploads happen only in SharePoint. Partial inventories are rejected explicitly rather than silently truncated.
+
+Deployment requires an authenticated Azure CLI session in the demo tenant with a token for the configured Dataverse organization:
+
+```powershell
+.\power-platform\deploy.ps1
+npm exec -- pa app add data-source --connector dataverse --table new_proposal --org-url https://org19eb8ebf.crm.dynamics.com/ --non-interactive
+npm exec -- pa app add flow --flow-id b9e53cc5-62c2-48f5-93bc-c9bb3497f6e2 --non-interactive
+npm run build
+npm exec -- pa app push --solution-id 3aff7e97-4ae3-f111-84e8-70a8a5af8fa3 --non-interactive
+```
+
+For an isolated Azure CLI profile, pass `-AzureConfigDir <directory>` to the deployment script after authenticating that profile. Never put tokens, passwords, or signed trigger URLs in this repository. Quiesce requests and wait for active worker runs to finish before redeploying flows; deployment briefly deactivates them.
+
+The configured maker account owns the embedded flow connections. The requester owns the resulting proposal record. Additional demo users need app/flow run access, appropriate Dataverse proposal read permissions, and site/library membership; this implementation does not grant tenant-wide access or alter existing security roles. Keep the table's provisioning fields restricted to trusted makers/flow identity if expanding beyond the single-maker demo.
+
+Focused tests use Node's built-in runner (Node 22.18+ or 24+ for TypeScript stripping), without adding a test framework:
+
+```powershell
+node --test .\tests\workspace.test.mjs
+```
 
 ## Phase 1 functionality
 
 - Responsive Fluent UI shell with keyboard-accessible controls, skip link, and focus indicators.
-- Opportunity dashboard and workspace preview navigation, preserving selection during the current app session.
+- Opportunity dashboard and proposal workspace navigation, preserving selection during the current app session.
 - Four fictional opportunities with IDs, customers, estimated USD contract values, sales stages, owners, and date-only due dates displayed in UTC.
 - **Dynamics 365 Opportunities (Demo Data)** selector with loading, empty, error/retry, and invalid-data feedback.
-- Planned nine-folder structure and clearly unprovisioned workspace/document/analysis states.
+- Nine-folder structure with clear provisioning, document, and future analysis states.
 - Light/dark appearance based on system preference at page load. Override using `?scoutTheme=light` or `?scoutTheme=dark`.
 
 ### Application structure
 
 - `src/types/opportunity.ts`: opportunity model and replaceable `OpportunityProvider` contract.
 - `src/data/opportunities.json`: synthetic local opportunity records.
-- `src/services/opportunityService.ts`: asynchronous JSON loading, validation, and explicit errors. A future adapter can implement the same contract.
+- `src/services/opportunityService.ts`: bundled local JSON behind an asynchronous, cancellable provider with validation and explicit errors. Bundling avoids a separate data fetch in the Power Apps host. A future adapter can implement the same contract.
 - `src/components/OpportunityDetails.tsx`: selected opportunity details.
-- `src/components/WorkspacePreview.tsx`: planned workspace and future document/analysis interface.
+- `src/components/WorkspacePanel.tsx`: live workspace status, retry controls, links, and document inventory.
+- `src/services/workspaceService.ts` and `workspaceMapping.ts`: generated SDK adapters and validated domain mapping.
 - `src/App.tsx`: state, navigation, loading, Fluent theme, and dashboard.
 - `src/index.css` and `src/App.css`: theme variables and responsive layout.
 
-Selection is not persisted across browser reloads. No test framework is installed; use build/lint and browser checks for this foundation.
+Opportunity selection is not persisted across browser reloads. Proposal status and workspace references persist in Dataverse and are recovered when the opportunity is selected again.
 
 ### Deliberately unavailable
 
-**Create Proposal Workspace**, **Open Solicitation Documents**, and **Refresh Documents** are disabled pending Phase 2. No proposal record or SharePoint folder exists. Folder names represent a plan; no workspace URLs or document inventory are fabricated.
+**Create Proposal Workspace** is enabled only after a successful status check for a selected opportunity. **Open Solicitation Documents** and **Refresh Documents** become available only when the workspace is Ready. Connection failures remain visible; no workspace URLs or document inventory are fabricated.
 
 **Analyze Proposal** and Requirements Analysis are disabled until Phase 3. Proposal Governance and approvals are disabled until Phase 4. No successful workflows, requirements, decisions, analysis progress, or completion metrics are simulated.
 
-There are **no live Dynamics 365, Dataverse, SharePoint, Power Automate, or Azure integrations** and no frontend credentials. Authentication/hosting remains the responsibility of the existing Power Apps configuration; this phase does not configure or claim to validate deployed authentication.
+**Dynamics 365 remains mocked.** There are no Azure AI integrations or frontend credentials. Authentication and connection hosting remain the responsibility of Power Apps.
 
 This fictional-data demonstration is not production-ready or represented as GCC High-compliant.
 

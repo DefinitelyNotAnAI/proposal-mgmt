@@ -266,7 +266,7 @@ Use Fluent UI styling to provide a consistent Microsoft application experience.
 
 ### 5\. Dataverse data model
 
-Create the following logical tables using the pmd publisher prefix.
+Create the following logical tables in the existing **Proposal Management Demo** solution using its **new** publisher prefix. Retain the existing publisher configuration.
 
 | Table | Purpose |
 | --- | --- |
@@ -394,13 +394,31 @@ Do not introduce additional frameworks or architectural complexity without a dem
 
 ### 9\. Open technical decisions
 
+#### Confirmed Phase 2 configuration
+
+- Use the app's currently configured Power Platform environment. Dataverse availability, maker permissions, licensing, and connector policy were confirmed by the maker.
+- Keep all components in the existing **Proposal Management Demo** solution with publisher prefix **new**.
+- Use the private SharePoint Team site at **https://0pnq2.sharepoint.com/sites/ProposalManagementDemo**.
+- Store workspaces under the site's **Documents** library in a **Proposals** parent folder, inheriting site/library permissions.
+- Name workspace folders **Opportunity ID - Opportunity Name**, sanitizing invalid SharePoint characters.
+- Create the nine standard subfolders. No proposal templates are available yet, so template copying is omitted for now.
+- Use the maker's current account for development flow connections. Assign each proposal record to the authenticated user requesting the workspace; fictional opportunity owners are display data only.
+- Enforce one workspace per opportunity with a Dataverse unique key. Repeat requests reuse the existing workspace, including after opportunity-name changes.
+- Provision asynchronously with persistent **Requested**, **Provisioning**, **Ready**, and **Failed** statuses. Retries must resume or repair partial work without duplicating records or folders.
+- Inventory only files directly inside **02 Solicitation Documents**, not nested folders. Show unsupported types explicitly; PDF/DOCX analysis remains unavailable until Phase 3. Uploads remain in SharePoint.
+- Use the supported Power Apps code-app flow integration: solution-aware instant flows with a Power Apps trigger, added through the Power Apps CLI to generate typed bindings. Do not embed HTTP trigger secrets or deployment credentials in the frontend.
+
+Platform deployment and end-to-end provisioning must be verified before Phase 2 is considered implemented. Confirmed design choices do not imply that tables, flows, or folders have been deployed.
+
+#### Remaining decisions
+
 The following decisions remain unresolved and should be addressed during their respective implementation phases:
 
-1. SharePoint demo site and document library.
+1. Proposal template locations and folder mappings, when templates become available.
 2. Azure AI resource configuration and model selection.
 3. Power Automate versus Azure\-hosted processing for long\-running analysis.
 4. Document source preview and highlighting approach.
-5. Licensing and connector requirements.
+5. Licensing and connector requirements for later-phase AI and approval capabilities.
 6. Test identity for approval workflows.
 7. Specific Dataverse column types and relationships.
 
